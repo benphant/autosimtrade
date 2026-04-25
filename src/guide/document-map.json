@@ -1,0 +1,114 @@
+{
+  "purpose": "High-score document template index. Each document must implement fill, check, parseScore, autoFix, retry.",
+  "documents": {
+    "M07": {
+      "name": "外销合同",
+      "strict": true,
+      "targetScore": 100,
+      "blockingErrors": ["合同无商品明细", "进口商或出口商代码错误", "目的港与进口国不匹配"],
+      "sourceOfTruth": ["account profile", "product catalog", "guide payment route", "term rule"]
+    },
+    "M50A": {
+      "name": "出口预算表",
+      "strict": true,
+      "targetScore": 90,
+      "sourceOfTruth": ["contract", "freight", "insurance", "tax rebate", "domestic purchase"]
+    },
+    "M50B": {
+      "name": "进口预算表",
+      "strict": true,
+      "targetScore": 90,
+      "sourceOfTruth": ["contract", "freight", "insurance", "tariff", "VAT", "domestic sale"]
+    },
+    "M30": {
+      "name": "信用证申请书",
+      "strict": true,
+      "targetScore": 95,
+      "blockingErrors": ["受益人错误", "金额错误", "装运期错误", "单据要求缺失"]
+    },
+    "M31": {
+      "name": "信用证通知书",
+      "strict": true,
+      "targetScore": 95,
+      "blockingErrors": ["出口商未接受信用证", "通知行不匹配"]
+    },
+    "M12": {
+      "name": "国内买卖合同",
+      "strict": true,
+      "targetScore": 95,
+      "blockingErrors": ["税务登记号错误", "签章信息错误", "商品明细错误"]
+    },
+    "M14": {
+      "name": "货物出运委托书",
+      "strict": false,
+      "targetScore": 90,
+      "sourceOfTruth": ["shipping company", "contract", "term rule"]
+    },
+    "M17A": {
+      "name": "出境货物报检单",
+      "strict": false,
+      "targetScore": 90,
+      "sourceOfTruth": ["commercial invoice", "packing list", "product inspection requirements"]
+    },
+    "M19": {
+      "name": "商业发票",
+      "strict": true,
+      "targetScore": 95,
+      "sourceOfTruth": ["contract", "product detail", "account profile"]
+    },
+    "M21": {
+      "name": "装箱单",
+      "strict": true,
+      "targetScore": 95,
+      "sourceOfTruth": ["product packing", "contract quantity"]
+    },
+    "M25": {
+      "name": "货物运输保险投保单",
+      "strict": true,
+      "targetScore": 95,
+      "blockingErrors": ["投保人错误", "船名航次错误", "保险金额错误", "CIF/CFR/FOB责任方错误"]
+    },
+    "M05A": {
+      "name": "出口货物报关单",
+      "strict": true,
+      "targetScore": 95,
+      "blockingErrors": ["经营单位错误", "运抵国错误", "指运港错误", "运保费错误"]
+    },
+    "M42": {
+      "name": "汇票",
+      "strict": true,
+      "targetScore": 95,
+      "blockingErrors": ["付款期限错误", "付款人错误", "收款人错误"]
+    },
+    "M40": {
+      "name": "贸易进口付汇核销单",
+      "strict": true,
+      "targetScore": 95,
+      "blockingErrors": ["交易编码错误", "付汇性质错误", "结算方式错误"]
+    },
+    "M17B": {
+      "name": "入境货物报检单",
+      "strict": false,
+      "targetScore": 90,
+      "sourceOfTruth": ["delivery order", "invoice", "packing list", "contract"]
+    },
+    "M05B": {
+      "name": "进口货物报关单",
+      "strict": true,
+      "targetScore": 95,
+      "blockingErrors": ["经营单位错误", "起运国错误", "装货港错误", "通关单缺失"]
+    },
+    "M43": {
+      "name": "贸易进口付汇到货核销表",
+      "strict": true,
+      "targetScore": 95,
+      "blockingErrors": ["进口单位错误", "付汇银行错误", "到货企业错误"]
+    },
+    "M36": {
+      "name": "出口收汇核销单送审登记表",
+      "strict": true,
+      "targetScore": 95,
+      "blockingErrors": ["商业发票未匹配", "报关单未匹配", "结汇专用联缺失"]
+    }
+  }
+}

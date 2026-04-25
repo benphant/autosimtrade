@@ -1,0 +1,16 @@
+{
+  "name": "autosimtrade",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PDF-guided SimTrade automation console.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "plan": "node src/engine/plan-cli.js",
+    "check": "node --check server.js && node --check src/engine/worker.js && node --check src/engine/scheduler.js && node --check src/live/simtrade_multi_full_closure_rounds.js"
+  },
+  "dependencies": {
+    "playwright-core": "^1.59.1"
+  }
+}

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AutoSimTrade</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>AutoSimTrade</h1>
+        <p>按《SimTrade 外贸实习平台实习指导书》调度账号、角色和流程</p>
+      </div>
+      <div class="badge">PDF First</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel control">
+        <h2>账号顺序</h2>
+        <div class="account-list">
+          <div class="account-row">
+            <label>账号1<input class="account-input" id="account1" spellcheck="false" /></label>
+            <label>密码<input class="password-input" id="password1" type="password" autocomplete="off" /></label>
+          </div>
+          <div class="account-row">
+            <label>账号2<input class="account-input" id="account2" spellcheck="false" /></label>
+            <label>密码<input class="password-input" id="password2" type="password" autocomplete="off" /></label>
+          </div>
+          <div class="account-row">
+            <label>账号3<input class="account-input" id="account3" spellcheck="false" /></label>
+            <label>密码<input class="password-input" id="password3" type="password" autocomplete="off" /></label>
+          </div>
+          <div class="account-row">
+            <label>账号4<input class="account-input" id="account4" spellcheck="false" /></label>
+            <label>密码<input class="password-input" id="password4" type="password" autocomplete="off" /></label>
+          </div>
+          <div class="account-row">
+            <label>账号5<input class="account-input" id="account5" spellcheck="false" /></label>
+            <label>密码<input class="password-input" id="password5" type="password" autocomplete="off" /></label>
+          </div>
+        </div>
+        <p class="hint">按顺序填写。填几个账号，就只使用这几个账号；单账号使用该账号的不同角色，双账号在两个账号之间交叉，三账号以上再分配独立出口商、进口商和工厂。</p>
+        <div class="actions">
+          <button id="runBtn" class="primary">开始运行</button>
+          <label class="rounds-control">轮数
+            <select id="rounds">
+              <option value="1" selected>1轮</option>
+              <option value="2">2轮</option>
+              <option value="3">3轮</option>
+              <option value="4">4轮</option>
+              <option value="5">5轮</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>本轮安排</h2>
+        <pre id="planView" class="pre">点击开始运行后生成本轮安排。</pre>
+      </section>
+
+      <section class="panel wide">
+        <h2>实时日志</h2>
+        <div id="status" class="status">未运行</div>
+        <pre id="logs" class="logs"></pre>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
