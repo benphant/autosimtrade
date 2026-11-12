@@ -59,6 +59,18 @@ function normalizeAccounts(input) {
     .filter(Boolean);
 }
 
+function resolveBaseUrl(input) {
+  const fallback = 'http://10.14.60.254/simtrade/';
+  const raw = String(input || '').trim().replace(/[\r\n]/g, '');
+  return raw || String(process.env.AUTOSIMTRADE_BASE_URL || '').trim() || fallback;
+}
+
+function resolveHeaded(body) {
+  if (typeof body.headed === 'boolean') return body.headed;
+  if (body.headed === '1' || body.headed === 'true' || body.headed === 'yes') return true;
+  return /^(1|true|yes)$/i.test(String(process.env.AUTOSIMTRADE_HEADED || '').trim());
+}
+
 function normalizeCredentials(input, accounts) {
   const source = input && typeof input === 'object' ? input : {};
   const result = {};
@@ -95,6 +107,8 @@ async function startRun(body) {
   await mkdir(runsDir, { recursive: true });
   const plan = await createPlan(body);
   const credentials = normalizeCredentials(body.credentials, plan.accounts);
+  const baseUrl = resolveBaseUrl(body.baseUrl);
+  const headed = resolveHeaded(body);
   const runId = `run_${new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14)}`;
   const runDir = join(runsDir, runId);
   await mkdir(runDir, { recursive: true });
@@ -108,6 +122,8 @@ async function startRun(body) {
       ...process.env,
       AUTOSIMTRADE_RUN_DIR: runDir,
       AUTOSIMTRADE_LIVE: body.live === false ? '0' : '1',
+      AUTOSIMTRADE_BASE_URL: baseUrl,
+      AUTOSIMTRADE_HEADED: headed ? '1' : '0',
       AUTOSIMTRADE_CREDENTIALS: JSON.stringify(credentials)
     }
   });

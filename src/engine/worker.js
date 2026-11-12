@@ -266,11 +266,19 @@ async function runLegacyCompat(plan) {
 
   const compatPath = join(runDir, 'legacy-live-runner.cjs');
   await writeFile(compatPath, source, 'utf8');
+  const baseUrl = process.env.AUTOSIMTRADE_BASE_URL || 'http://10.14.60.254/simtrade/';
+  const headed = /^(1|true|yes)$/i.test(String(process.env.AUTOSIMTRADE_HEADED || '').trim()) ? '1' : '0';
   emit({ level: 'info', message: `live legacy runner generated: ${compatPath}` });
+  emit({ level: 'info', message: `simtrade base: ${baseUrl} headed=${headed}` });
 
   const child = spawn(process.execPath, [compatPath], {
     cwd: runtimeRoot,
-    stdio: ['ignore', 'pipe', 'pipe']
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      AUTOSIMTRADE_BASE_URL: baseUrl,
+      AUTOSIMTRADE_HEADED: headed
+    }
   });
 
   child.stdout.setEncoding('utf8');
