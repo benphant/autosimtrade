@@ -2,8 +2,33 @@ const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright-core');
 
-const edge = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
-const base = 'http://10.14.60.254/simtrade/';
+const defaultBase = 'http://10.14.60.254/simtrade/';
+const edgeCandidates = [
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+  'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+];
+
+function normalizeBase(value) {
+  let raw = String(value || '').trim().replace(/[\r\n]/g, '') || defaultBase;
+  raw = raw.replace(/\/login\.aspx\/?$/i, '');
+  if (!raw.endsWith('/')) raw += '/';
+  return raw;
+}
+
+function isHeaded() {
+  return /^(1|true|yes)$/i.test(String(process.env.AUTOSIMTRADE_HEADED || '').trim());
+}
+
+function browserLaunchOptions() {
+  const headless = !isHeaded();
+  for (const candidate of edgeCandidates) {
+    if (fs.existsSync(candidate)) return { headless, executablePath: candidate };
+  }
+  console.log('Edge not found; falling back to bundled Chromium');
+  return { headless };
+}
+
+const base = normalizeBase(process.env.AUTOSIMTRADE_BASE_URL || defaultBase);
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'simtradebook');
 
@@ -80,15 +105,105 @@ function setTag(xml, tag, value, parent) {
   return xml.replace(`</${parent}>`, `<${tag}>${val}</${tag}></${parent}>`);
 }
 
+function frameScopes(page) {
+  const main = page.mainFrame();
+  return [main, ...page.frames().filter((frame) => frame !== main)];
+}
+
+function frameList(page) {
+  return page.frames().map((frame) => frame.url() || frame.name() || '(empty)').join(' | ');
+}
+
+async function findVisible(page, selector, timeout = 30000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    for (const frame of frameScopes(page)) {
+      const locator = frame.locator(selector).first();
+      const visible = await locator.isVisible().catch(() => false);
+      if (visible) return locator;
+    }
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
+    await page.waitForTimeout(Math.min(250, remaining));
+  }
+  return null;
+}
+
+async function failLogin(page, reason) {
+  const frames = frameList(page);
+  let screenshot = '';
+  try {
+    fs.mkdirSync(outDir, { recursive: true });
+    screenshot = path.join(outDir, 'login-timeout.png');
+    await page.screenshot({ path: screenshot, fullPage: true });
+  } catch (err) {
+    screenshot = `unavailable (${err.message})`;
+  }
+  const hint = String(page.url() || '').toLowerCase().includes('login.aspx')
+    ? ''
+    : ' Landed page is not login.aspx; check the SimTrade base URL.';
+  throw new Error(`${reason}${hint} url=${page.url()} frames=${frames} screenshot=${screenshot}`);
+}
+
+async function selectLoginRole(scope, role) {
+  const roleValue = String(role);
+  const roleLink = scope.locator(`#role${roleValue}`);
+  if (await roleLink.count().catch(() => 0) && await roleLink.first().isVisible().catch(() => false)) {
+    await roleLink.first().click({ noWaitAfter: true });
+    const hiddenRole = scope.locator('input#cblUsrCls').first();
+    if (await scope.locator('input#cblUsrCls').count().catch(() => 0)) {
+      const current = await hiddenRole.inputValue().catch(() => '');
+      if (current !== roleValue) {
+        await hiddenRole.evaluate((el, value) => {
+          el.value = value;
+        }, roleValue);
+      }
+    }
+    return;
+  }
+  const roleSelect = scope.locator('select#cblUsrCls');
+  if (await roleSelect.count().catch(() => 0)) {
+    await roleSelect.first().selectOption(roleValue);
+    return;
+  }
+  const hiddenRole = scope.locator('#cblUsrCls');
+  if (await hiddenRole.count().catch(() => 0)) {
+    await hiddenRole.first().evaluate((el, value) => {
+      el.value = value;
+    }, roleValue);
+    return;
+  }
+  throw new Error(`role control not found for role ${roleValue}`);
+}
+
 async function login(page, account, role) {
   await page.context().clearCookies();
-  await page.goto(base + 'login.aspx', { waitUntil: 'domcontentloaded' });
-  await page.fill('#txtUsrName', account);
-  await page.fill('#txtUsrPwd', passwords[account] || '');
-  await page.selectOption('#cblUsrCls', String(role));
+  const loginUrl = base + 'login.aspx';
+  try {
+    await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  } catch (err) {
+    throw new Error(`Could not open login page ${loginUrl}. ${err.message}`);
+  }
+  console.log('login url:', page.url());
+
+  const user = await findVisible(page, '#txtUsrName');
+  if (!user) await failLogin(page, '#txtUsrName not found.');
+  await user.fill(account);
+
+  const handle = await user.elementHandle();
+  const scope = (handle && await handle.ownerFrame()) || page.mainFrame();
+  if (handle) await handle.dispose().catch(() => {});
+
+  try {
+    await selectLoginRole(scope, role);
+  } catch (err) {
+    await failLogin(page, err.message);
+  }
+
+  await scope.locator('#txtUsrPwd').fill(passwords[account] || '');
   await Promise.all([
     page.waitForLoadState('domcontentloaded').catch(() => {}),
-    page.click('#btnLogin'),
+    scope.locator('#btnLogin').click(),
   ]);
   await page.waitForTimeout(350);
 }
@@ -1718,7 +1833,10 @@ async function runRound(page, raw, profiles) {
 
 (async () => {
   fs.mkdirSync(outDir, { recursive: true });
-  const browser = await chromium.launch({ headless: true, executablePath: edge });
+  const launchOptions = browserLaunchOptions();
+  console.log(`simtrade base: ${base}`);
+  console.log(`browser: ${launchOptions.executablePath || 'bundled Chromium'} (${launchOptions.headless ? 'headless' : 'headed'})`);
+  const browser = await chromium.launch(launchOptions);
   const page = await browser.newPage();
   page.on('dialog', async (dialog) => {
     log('dialog', dialog.message());

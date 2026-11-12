@@ -26,6 +26,8 @@ function payload() {
     mode: 'guide-coverage',
     payments: ['L/C', 'D/P', 'D/A', 'T/T'],
     terms: ['CIF', 'CFR', 'FOB'],
+    baseUrl: document.querySelector('#baseUrl').value.trim(),
+    headed: document.querySelector('#headed').checked,
     live: true
   };
 }

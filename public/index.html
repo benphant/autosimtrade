@@ -41,6 +41,16 @@
           </div>
         </div>
         <p class="hint">按顺序填写。填几个账号，就只使用这几个账号；单账号使用该账号的不同角色，双账号在两个账号之间交叉，三账号以上再分配独立出口商、进口商和工厂。</p>
+        <div class="site-settings">
+          <label class="site-url">SimTrade 网址
+            <input id="baseUrl" spellcheck="false" autocomplete="off" value="http://10.14.60.254/simtrade/" />
+          </label>
+          <label class="toggle headed-option">
+            <input id="headed" type="checkbox" />
+            显示浏览器窗口
+          </label>
+        </div>
+        <p class="hint">网址要和浏览器里能打开的登录页一致，并带上站点路径。勾选“显示浏览器窗口”可以看到实际打开的页面。</p>
         <div class="actions">
           <button id="runBtn" class="primary">开始运行</button>
           <label class="rounds-control">轮数
